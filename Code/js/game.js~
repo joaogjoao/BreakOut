@@ -1,0 +1,230 @@
+'use strict'
+
+/**
+ * Exemplo de mecânicas de controle do personagem/avatar do jogador.
+ * Utiliza engine de física embutida na Phaser: Arcade Physics.
+ * 
+ * - 4/8 direções
+ * - rotacionar e mover
+ * - acelerar e mover (+ inércia)
+ * 
+ * OBS: adicionados arquivos de configuração para auto-complete pelo VSCode
+ */
+
+var game = new Phaser.Game(900, 600, Phaser.CANVAS, 
+    'game-container', {
+        preload: preload, 
+        create: create,
+        update: update, 
+        render: render
+    }
+)
+
+var player
+var player2
+var background
+var bullets
+var bullets2
+var keys1
+var keys2
+var speed = 300
+var text1
+var text2
+
+function preload() {
+    game.load.image('player', 'assets/airplane1.png')
+    game.load.image('background', 'assets/sky.png')
+    game.load.image('shot', 'assets/shot.png')
+    game.load.spritesheet('explosion', 'assets/explosion.png', 56, 56)
+}
+
+function create() {
+    game.renderer.roundPixels = true
+    game.renderer.clearBeforeRender = false
+    game.physics.startSystem(Phaser.Physics.ARCADE)
+    background = game.add.sprite(0, 0, 'background')
+    background.scale.x = game.width/background.width
+    background.scale.y = game.height/background.height
+    
+    var npc = game.add.sprite(50, 50, 'player')
+    npc.anchor.setTo(0.5, 0.5)
+
+
+    var npcTween = game.add.tween(npc)
+        .to( {x: game.width - 50, y: 50}, game.width*2 )
+        .to( {x: game.width - 50, y: game.height - 50}, game.width*2 )
+        .to( {x: 50, y: game.height -50}, game.width*2 )
+        .to( {x: 50, y: 50}, game.width*2 )
+        .loop(-1)
+        .start()
+
+    game.add.tween(npc)
+        .to({alpha: 0 }, 500)
+        .to({alpha: 1 }, 500)
+        .loop(-1)
+        .start()
+
+    // tiros
+    bullets = createBullets()
+    bullets2 = createBullets()
+    
+    player = createPlayer(game.width*1/5, game.height/2, 0xff0000)
+    player2= createPlayer(game.width*4/5, game.height/2, 0x00ff00)
+    player2.angle = 180
+
+    keys1 = {
+        up: game.input.keyboard.addKey(Phaser.Keyboard.UP),
+        down: game.input.keyboard.addKey(Phaser.Keyboard.DOWN),
+        left: game.input.keyboard.addKey(Phaser.Keyboard.LEFT),
+        right: game.input.keyboard.addKey(Phaser.Keyboard.RIGHT),
+        fire: game.input.keyboard.addKey(Phaser.Keyboard.L)
+    }
+
+    keys2 = {
+        up: game.input.keyboard.addKey(Phaser.Keyboard.W),
+        down: game.input.keyboard.addKey(Phaser.Keyboard.S),
+        left: game.input.keyboard.addKey(Phaser.Keyboard.A),
+        right: game.input.keyboard.addKey(Phaser.Keyboard.D),
+        fire: game.input.keyboard.addKey(Phaser.Keyboard.G)
+    }
+
+    // HUD
+    text1 = createHealthText(game.width*1/9, 50, 'PLAYER A: 5')
+    text2 = createHealthText(game.width*8/9, 50, 'PLAYER B: 5')
+
+    var fullScreenButton = game.input.keyboard.addKey(Phaser.Keyboard.ONE)
+    fullScreenButton.onDown.add(toggleFullScreen)
+}
+
+function createExplosion(x,y){
+    var explosion = game.add.sprite(x,y, 'explosion')
+    var anim = explosion.animations.add('full', [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], 30, false)
+    explosion.scale.setTo(0.5,0.5)
+    explosion.anchor.setTo(0.5,0.5)
+    explosion.animations.play('full')
+    anim.onComplete.add(()=> explosion.kill())
+}
+
+function createHealthText(x, y, string) {
+    var style = {font: 'bold 16px Arial', fill: 'white'}
+    var text = game.add.text(x, y, string, style)
+    text.setShadow(3, 3, 'rgba(0, 0, 0, 0.5)', 2)
+    text.anchor.setTo(0.5, 0.5)
+    return text
+}
+
+function createBullets() {
+    var bullets = game.add.group()
+    bullets.enableBody = true
+    bullets.physicsBodyType = Phaser.Physics.ARCADE
+    bullets.createMultiple(50, 'shot')
+    bullets.setAll('anchor.x', 0.5)
+    bullets.setAll('anchor.y', 0.5)    
+    return bullets
+}
+
+function createPlayer(x, y, tint) {
+    var sprite = game.add.sprite(x, y, 'player')
+    sprite.anchor.setTo(0.5, 0.5)
+    // controle polar
+    sprite.moveDirection = 0
+    sprite.moveSpeed = 0
+    game.physics.arcade.enable(sprite)
+    sprite.body.drag.set(100)
+    sprite.body.maxVelocity.set(speed)
+    sprite.tint = tint
+    sprite.health = 20
+    return sprite    
+}
+
+function toggleFullScreen() {
+    game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL
+    if (game.scale.isFullScreen) {
+        game.scale.stopFullScreen()
+    } else {
+        game.scale.startFullScreen(false)
+    }
+}
+
+function update() {
+    accelerateAndRotate(player, keys1)
+    accelerateAndRotate(player2, keys2)
+    fireBullet(bullets, keys1, player)
+    fireBullet(bullets2, keys2, player2)  
+    
+    bullets.forEach( (item) => game.world.wrap(item))
+
+    game.physics.arcade.collide(player, bullets2, hitPlayer)
+    game.physics.arcade.collide(player2, bullets, hitPlayer)
+    game.physics.arcade.collide(player, player2)
+}
+
+function hitPlayer(sprite, bullet) {
+    if (sprite.alive) {
+        sprite.damage(1)
+        updateHud()
+        createExplosion(bullet.x, bullet.y)
+        bullet.kill()
+    }
+}
+
+function updateHud() {
+    text1.text = 'PLAYER A: ' + player.health
+    text2.text = 'PLAYER B: ' + player2.health
+}
+
+function fireBullet(bullets, keys1, player) {
+    if (!player.alive)
+        return
+
+    if (keys1.fire.isDown) {
+        var bullet = bullets.getFirstExists(false)
+        if (bullet) {
+            bullet.reset(player.x, player.y)
+            bullet.lifespan = 2000
+            bullet.rotation = player.rotation
+            game.physics.arcade.velocityFromRotation(
+                bullet.rotation, 400, bullet.body.velocity)
+        }
+    }
+}
+
+function accelerateAndRotate(sprite, keys) {
+    if (keys.up.isDown) {
+        game.physics.arcade.accelerationFromRotation(
+            sprite.rotation, 600, sprite.body.acceleration)
+    } else {
+        sprite.body.acceleration.set(0)
+    }
+
+    if (keys.left.isDown) {
+        sprite.body.angularVelocity = -200
+    } else
+    if (keys.right.isDown) {
+        sprite.body.angularVelocity = 200
+    } else {
+        sprite.body.angularVelocity = 0
+    }
+
+    game.world.wrap(sprite, 0, true);
+}
+
+function screenBounds(sprite) {
+    if (sprite.x < sprite.width/2) {
+        sprite.x = sprite.width/2
+    } else
+    if (sprite.x > game.width - sprite.width/2) {
+        sprite.x = game.width - sprite.width/2
+    }
+
+    if (sprite.y < sprite.height/2) {
+        sprite.y = sprite.height/2
+    } else
+    if (sprite.y > game.height - sprite.height/2) {
+        sprite.y = game.height - sprite.height/2
+    }
+}
+
+function render() {
+}
+
