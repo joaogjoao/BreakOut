@@ -1,16 +1,5 @@
 	'use strict'
 
-	/**
-	 * Exemplo de mecânicas de controle do personagem/avatar do jogador.
-	 * Utiliza engine de física embutida na Phaser: Arcade Physics.
-	 * 
-	 * - 4/8 direções
-	 * - rotacionar e mover
-	 * - acelerar e mover (+ inércia)
-	 * 
-	 * OBS: adicionados arquivos de configuração para auto-complete pelo VSCode
-	 */
-
 	var game = new Phaser.Game(900, 600, Phaser.CANVAS,
 		'game-container', {
 			preload: preload,
@@ -40,6 +29,10 @@
 	var score = 0;
 	var maiorL
 
+	var scoreBase
+	var scoreBase1
+	var nextFire = 0;
+	var fireRate = 200;
 	var rest
 	var fire
 	var scoreText;
@@ -78,100 +71,33 @@
 		background.scale.y = game.height / background.height
 
 		//---------------------------------------MAPA
-		var mapa = [			
-		   [1,2,3,4,5,6,1,2,3,0],
-		   [1,2,3,4,5,6,1,2,3,0],
-		   [1,2,3,4,5,6,1,2,3,0],
-		   [1,2,3,4,5,6,1,2,3,0],
-		   [1,2,3,4,5,6,1,2,3,0],
-		   [1,2,3,4,5,6,1,2,3,0],
-		   [1,2,3,4,5,6,1,2,3,0]
-		   ]
+		var mapas = [
+			[1, 2, 3, 4, 5, 6, 1, 2, 3, 0],
+			[1, 2, 3, 4, 5, 6, 1, 2, 3, 0],
+			[1, 2, 3, 4, 5, 6, 1, 2, 3, 0],
+			[1, 2, 3, 4, 5, 6, 1, 2, 3, 0],
+			[1, 2, 3, 4, 5, 6, 1, 2, 3, 0],
+			[1, 2, 3, 4, 5, 6, 1, 2, 3, 0],
+			[1, 2, 3, 4, 5, 6, 1, 2, 3, 0]
+		]
 
 
-		var numero = getMapaElements(mapa)
+		var numero = getMapaElements(mapas)
 		groupBricks = game.add.group()
 		groupBricks.enableBody = true
 		groupBricks.physicsBodyType = Phaser.Physics.ARCADE
-		//groupBricks.createMultiple(numero)
-
-		mapa.forEach(function(valor, chave) {
-			valor.forEach(function(valor2, chave2) {
-				if (valor2 < 6) {
-					var brick = groupBricks.create((game.width - maiorL * 38) / 2 + (38 * chave2), 70 + (19 * chave), 'bricks', valor2);
-					brick.body.bounce.set(1);
-					brick.body.immovable = true
-				}
-			})
-		})
-
-		//-----------------------------------------PADDLE
-
-		paddle = game.add.sprite(game.world.centerX, 500, 'paddle');
-		paddle.anchor.setTo(0.5, 0.5);
-
-		game.physics.enable(paddle, Phaser.Physics.ARCADE);
-
-		paddle.body.collideWorldBounds = true;
-		paddle.body.bounce.set(1);
-		paddle.body.immovable = true;
-		paddle.scale.setTo(1.5, 1.5)
-
-
-		//-----------------------------------------TEXT, INFO
-
-
-		var scoreBase = game.add.sprite(23, 23, 'scor');
-		//scoreBase.anchor.setTo(0.5, 0.5);
-		scoreBase.alpha = 0.7
-		scoreBase.scale.setTo(2.9);
-		var scoreBase1 = game.add.sprite(770, 20, 'vid');
-		//scoreBase1.anchor.setTo(0.5, 0.5);
-		scoreBase1.scale.setTo(2.2);
-		scoreBase1.alpha = 0.7
-
-
-		scoreText = game.add.text(32, 30, 'SCORE: 0', {
-			font: "28px Calibri",
-			fill: "#ffffff",
-			align: "left"
-		});
-		livesText = game.add.text(780, 30, 'VIDAS', {
-			font: "28px Calibri",
-			fill: "#ffffff",
-			align: "left"
-		});
-		introText = game.add.text(game.world.centerX, 400, 'CLIQUE PARA COMEÇAR', {
-			font: "40px Calibri",
-			fill: "#ffffff",
-			align: "center"
-		});
-		introText.anchor.setTo(0.5, 0.5);
-
-
-		game.input.onDown.add(releaseBall, this);
+		
+		
+		createMap(mapas)
+		createPaddle()
+		createHUD()
+		
 		vidas = game.add.group()
 		vidas.enableBody = true
 		plotLives()
-
-
-		//-----------------------------------------BALL
-
-
-		ball = game.add.sprite(game.world.centerX, paddle.y - 16, 'ball', 0);
-		ball.anchor.setTo(0.5, 0.5);
-		ball.checkWorldBounds = true;
-
-		game.physics.enable(ball, Phaser.Physics.ARCADE);
-
-		ball.body.collideWorldBounds = true;
-		ball.body.bounce.set(1);
-
-		ball.animations.add('spin', [4, 3, 1, 0, 2], 30, true);
-
-		ball.events.onOutOfBounds.add(ballLost, this);
-
-
+		createBall()
+		game.input.onDown.add(releaseBall, this);
+				
 		//-----------------------------------------BONUS
 
 
@@ -233,15 +159,87 @@
 
 	//---------------------------------------------------------------------------------------------------------------//
 
+	function createHUD() {
+		scoreBase = game.add.sprite(23, 23, 'scor');
+		scoreBase.alpha = 0.7
+		scoreBase.scale.setTo(2.9);
+		scoreBase1 = game.add.sprite(770, 20, 'vid');
+		scoreBase1.scale.setTo(2.2);
+		scoreBase1.alpha = 0.7
+
+
+		scoreText = game.add.text(32, 30, 'SCORE: 0', {
+			font: "28px Calibri",
+			fill: "#ffffff",
+			align: "left"
+		});
+		livesText = game.add.text(780, 30, 'VIDAS', {
+			font: "28px Calibri",
+			fill: "#ffffff",
+			align: "left"
+		});
+		introText = game.add.text(game.world.centerX, 400, 'CLIQUE PARA COMEÇAR', {
+			font: "40px Calibri",
+			fill: "#ffffff",
+			align: "center"
+		});
+		introText.anchor.setTo(0.5, 0.5);
+}
+
+
+	function createPaddle() {
+		paddle = game.add.sprite(game.world.centerX, 500, 'paddle');
+		paddle.anchor.setTo(0.5, 0.5);
+
+		game.physics.enable(paddle, Phaser.Physics.ARCADE);
+
+		paddle.body.collideWorldBounds = true;
+		paddle.body.bounce.set(1);
+		paddle.body.immovable = true;
+		paddle.scale.setTo(1.5, 1.5)
+	}
+
+	function createBall() {
+		ball = game.add.sprite(game.world.centerX, paddle.y - 16, 'ball', 0);
+		ball.anchor.setTo(0.5, 0.5);
+		ball.checkWorldBounds = true;
+
+		game.physics.enable(ball, Phaser.Physics.ARCADE);
+
+		ball.body.collideWorldBounds = true;
+		ball.body.bounce.set(1);
+
+		ball.animations.add('spin', [4, 3, 1, 0, 2], 30, true);
+
+		ball.events.onOutOfBounds.add(ballLost, this);
+	}
+
+
+	function createMap(mapa) {
+		mapa.forEach(function(valor, chave) {
+			valor.forEach(function(valor2, chave2) {
+				if (valor2 < 6) {
+					var brick = groupBricks.create((game.width - maiorL * 38) / 2 + (38 * chave2), 70 + (19 * chave), 'bricks', valor2);
+					brick.body.bounce.set(1);
+					brick.body.immovable = true
+				}
+			})
+		})
+	}
+
+
 	function ninjaFollow() {
-		ninja.forEach(function (ninja) {game.physics.arcade.moveToObject(ninja, paddle, 50)})			
-	}	
+		ninja.forEach(function(ninja) {
+			game.physics.arcade.moveToObject(ninja, paddle, 50)
+		})
+	}
+
 	function ballHitNinja(_ball, _ninja) {
 		_ninja.kill()
-		score+=30
+		score += 30
 		scoreText.text = 'SCORE: ' + score;
-	}	
-	
+	}
+
 	function ninjaCreate() {
 		var ninja1 = ninja.create(game.world.centerX, 50, 'ninja', 0);
 		ninja1.anchor.setTo(0.5, 0.5);
@@ -250,15 +248,30 @@
 		ninja1.body.gravity.y = 200;
 		ninja1.animations.add('ninja', [0, 1, 2, 3, 4], 50, true);
 		ninja1.animations.play('ninja')
-		
+
 		game.add.tween(ninja1)
-        .to( {x: game.width - 50, y: 50}, game.width*2 )
-        .to( {x: game.width - 50, y: game.height - 50}, game.width*2 )
-        .to( {x: 50, y: game.height -50}, game.width*2 )
-        .to( {x: 50, y: 50}, game.width*2 )
-        .to( {x: game.world.centerX, y: 50}, game.width*2 )
-        .loop(-1)
-        .start()
+			.to({
+				x: game.width - 50,
+				y: 50
+			}, game.width * 2)
+			.to({
+				x: game.width - 50,
+				y: game.height - 50
+			}, game.width * 2)
+			.to({
+				x: 50,
+				y: game.height - 50
+			}, game.width * 2)
+			.to({
+				x: 50,
+				y: 50
+			}, game.width * 2)
+			.to({
+				x: game.world.centerX,
+				y: 50
+			}, game.width * 2)
+			.loop(-1)
+			.start()
 	}
 
 	function createBullets() {
@@ -281,21 +294,24 @@
 
 	function fireBullet() {
 		if (fire.isDown && bn > 0 && !ballOnPaddle) {
-			var bullet = bullets.getFirstExists(false)
-			if (bullet) {
-				if (bn % 2) {
-					bullet.reset(paddle.x + paddle.width / 2, paddle.y)
-				} else {
-					bullet.reset(paddle.x - paddle.width / 2, paddle.y)
+			if (game.time.now > nextFire) {
+				nextFire = game.time.now + fireRate;
+				var bullet = bullets.getFirstExists(false)
+				if (bullet) {
+					if (bn % 2) {
+						bullet.reset(paddle.x + paddle.width / 2, paddle.y)
+					} else {
+						bullet.reset(paddle.x - paddle.width / 2, paddle.y)
+					}
+
+					bullet.rotation = 270 * Math.PI / 180
+					game.physics.arcade.velocityFromRotation(
+						bullet.rotation, 400, bullet.body.velocity)
+					bn--
+					bullet.checkWorldBounds = true;
+					bullet.events.onOutOfBounds.add(de, this);
+
 				}
-
-				bullet.rotation = -1.5
-				game.physics.arcade.velocityFromRotation(
-					bullet.rotation, 400, bullet.body.velocity)
-				bn--
-				bullet.checkWorldBounds = true;
-				bullet.events.onOutOfBounds.add(de, this);
-
 			}
 		}
 	}
@@ -449,9 +465,9 @@
 	}
 
 
-function getRandomArbitrary(min, max) {
-  return Math.random() * (max - min) + min;
-}
+	function getRandomArbitrary(min, max) {
+		return Math.random() * (max - min) + min;
+	}
 
 	function bulletHitBrick(_bullet, _brick) {
 
@@ -486,7 +502,7 @@ function getRandomArbitrary(min, max) {
 		} else if (_brick.frame == 1) {
 			bonus12 = 1
 		}
-		if (!(bonus12 == -1) && !(bonus12 == 1) && (getRandomArbitrary(0,100)>75)) {
+		if (!(bonus12 == -1) && !(bonus12 == 1) /*&& (getRandomArbitrary(0,100)>75)*/ ) {
 			var bonus1 = bonus.create(_brick.x, _brick.y, 'bonus', bonus12);
 			bonus1.body.bounce.y = 0.8;
 			bonus1.body.gravity.y = 200;
