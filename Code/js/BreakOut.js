@@ -141,7 +141,7 @@
 		groupBricks.physicsBodyType = Phaser.Physics.ARCADE
 
 
-		createCoin()
+		
 		
 		createMap(mapas)
 		createPaddle()
@@ -155,10 +155,11 @@
 
 		//-----------------------------------------BONUS
 
-
 		bonus = game.add.group()
 		bonus.enableBody = true
 		bonus.physicsBodyType = Phaser.Physics.ARCADE
+		var bonus1 = bonus.create(300, 300, 'bonus', 4);
+				bonus1.body.gravity.y = 200;
 
 		fire = game.input.keyboard.addKey(Phaser.Keyboard.L)
 
@@ -172,7 +173,6 @@
 		ninja2 = game.add.group()
 		ninja2.enableBody = true
 		ninja2.physicsBodyType = Phaser.Physics.ARCADE
-		ninjaCreate()
 		var fullScreenButton = game.input.keyboard.addKey(Phaser.Keyboard.ONE)
 		rest = game.input.keyboard.addKey(Phaser.Keyboard.R)
 		fullScreenButton.onDown.add(toggleFullScreen)
@@ -527,6 +527,8 @@
 						bullet.reset(paddle.x - paddle.width / 2, paddle.y)
 						
 					}
+					var ba = bulArt.getFirstExists(true)
+					ba.destroy()
 					shoot.play()
 					bullet.bala = true
 					bullet.rotation = 270 * Math.PI / 180
@@ -549,9 +551,13 @@
 		bulArt.createMultiple(30, 'shot')
 		bulArt.setAll('anchor.x', 0.5)
 		bulArt.setAll('anchor.y', 0.5)
+		var i	= 10
+		
 		bulArt.forEach(function(valor2, chave2) {
-			valor2.reset((chave2 * 10), paddle.y+30)
-			console.log(chave2 + '')
+			valor2.reset((i), paddle.y+30)
+			valor2.rotation = 270 * Math.PI / 180
+			console.log(i + '')
+			i+= 10
 			}
 			)
 		}
@@ -645,7 +651,6 @@
 			ballOnPaddle = false;
 			ball.body.velocity.y = ballVelocity
 			ball.body.velocity.x = -75;
-			ball.animations.play('spin');
 			introText.visible = false;
 		}
 
@@ -662,7 +667,7 @@
 		vidas.remove(vi)
 		vidas.remove(0)
 		_ninja.kill()
-		if (lives === 0) {
+		if (lives == 0) {
 			gameOver();
 		} else {
 			ballOnPaddle = true;
