@@ -63,8 +63,23 @@
 	var shoot
 	var punch
 
+	var first = true
+	var ninjaB
+	var ninjaA
+	var bo1
+	var bo2
+	var bo3
+	var bo5
+	var introsBase
+	var textIntrosBase
+	var textIntrosBase1
+	var introsBase1
+	var autorText
+
+
 	function preload() {
 		game.load.image('background', 'assets/background.jpeg')
+		game.load.image('backgroundt', 'assets/backgroundteste.png')
 		game.load.image('scor', 'assets/score.png')
 		game.load.image('vid', 'assets/vid.png')
 		game.load.image('paddle', 'assets/paddle.png')
@@ -92,19 +107,19 @@
 
 
 	function create() {
-
 		bn = 0
 		lives = 3;
 		score = 0;
+
 		ballOnPaddle = true;
 		gameOvers = false;
 		game.renderer.roundPixels = true
 		game.renderer.clearBeforeRender = false
 		game.physics.startSystem(Phaser.Physics.ARCADE)
-		background = game.add.sprite(0, 0, 'background')
+		background = game.add.sprite(0, 0, 'backgroundt')
 		background.scale.x = game.width / background.width
 		background.scale.y = game.height / background.height
-		
+
 		ballBounce = game.add.audio('bounces')
 		shoot = game.add.audio('shoot')
 		jogaShur = game.add.audio('jogaShur')
@@ -114,16 +129,21 @@
 		punch = game.add.audio('punch')
 		punch.volume = 0.35
 
- 	
+		document.getElementById("game-container").style.cursor = "default"
+
 		//---------------------------------------MAPA-------
 		var mapas = [
 			//[1, 6, 2, 3, 4, 5, 6, 1, 2, 3, 0, 4, 5, 2, 2, 2, 3],
-		  // [1, 2, 3, 4, 5, 6, 1, 2, 3, 0, 0, 4, 5, 2, 2, 2, 3],
+			// [1, 2, 3, 4, 5, 6, 1, 2, 3, 0, 0, 4, 5, 2, 2, 2, 3],
 			//[0, 0, 0, 1, 2, 3, 4, 5, 6, 1, 2, 3, 0, 0, 4, 5, 2, 2, 2, 3],
-			//[6, 6, 0, 0, 0, 1, 3, 2, 2, 3, 4, 5, 6, 1, 2, 3, 0],
-			//[6, 6, 0, 0, 0, 0, 1, 1, 1, 1, 1],
-			[ 0, 1, 2, 3, 4, 5]
-			//[0, 1, 2, 3, 4, 5],
+			/*			[6, 6, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+						[6, 6, 0, 0, 0, 1, 3, 2, 2, 3, 4, 5, 6, 1, 2, 3, 0],
+			*/
+			[0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
+			[6, 6, 6, 0, 1, 2, 3, 4, 5, 6, 6, 6],
+			[6, 6, 6, 0, 1, 2, 3, 4, 5, 6, 6, 6],
+			[6, 6, 6, 0, 1, 2, 3, 4, 5, 6, 6, 6],
+			[6, 6, 6, 0, 1, 2, 3, 4, 5, 6, 6, 6]
 			//[0, 1, 2, 3, 4, 5],
 			//[0, 1, 2, 3, 4, 5]
 			//[1, 2, 3, 4, 5, 6, 1, 2, 4],
@@ -132,17 +152,56 @@
 			//[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 		]
 
-
 		var numero = getMapaElements(mapas)
 		groupBricks = game.add.group()
 		groupBricks.enableBody = true
 		groupBricks.physicsBodyType = Phaser.Physics.ARCADE
 
+		if (first) {
 
-		
-		
+			introsBase = game.add.sprite(310, game.world.centerY - 55, 'vid');
+			introsBase.scale.setTo(3.35, 2)
+			introsBase.anchor.setTo(0.1, 0.3)
+			//introsBase.alpha = 0.7
+			introsBase.tint = 0xff0000
+			introsBase1 = game.add.sprite(303 + introsBase.width, game.world.centerY - 55, 'vid');
+			introsBase1.scale.setTo(3.35, 2)
+			introsBase1.anchor.setTo(0.1, 0.3)
+			//introsBase1.alpha = 0.7
+			introsBase1.tint = 0x00ff00
+
+			textIntrosBase = game.add.text(330, game.world.centerY - 70, 'RUINS', {
+				font: "20px Calibri",
+				//style: "bold",
+				fill: "#ffffff",
+				align: "center"
+			});
+
+			textIntrosBase1 = game.add.text(323 + introsBase.width, game.world.centerY - 70, 'BONS', {
+				font: "20px Calibri",
+				//style: "bold",
+				fill: "#ffffff",
+				align: "center"
+			});
+
+			ninjaB = game.add.sprite(310, game.world.centerY - 50, 'ninjab', 0)
+			ninjaA = game.add.sprite(360, game.world.centerY - 50, 'ninja', 0)
+			ninjaA.scale.setTo(0.5)
+			ninjaB.scale.setTo(0.5)
+			bo1 = game.add.sprite(410, game.world.centerY - 50, 'bonus', 7)
+			bo3 = game.add.sprite(460, game.world.centerY - 50, 'bonus', 5)
+			bo5 = game.add.sprite(510, game.world.centerY - 50, 'bonus', 4)
+			bo2 = game.add.sprite(560, game.world.centerY - 50, 'health')
+			bo2.scale.setTo(0.3)
+
+		}
+
+
+
 		createMap(mapas)
 		createPaddle()
+		fire = game.input.keyboard.addKey(Phaser.Keyboard.L)
+
 		createHUD()
 
 		vidas = game.add.group()
@@ -156,10 +215,7 @@
 		bonus = game.add.group()
 		bonus.enableBody = true
 		bonus.physicsBodyType = Phaser.Physics.ARCADE
-		var bonus1 = bonus.create(300, 300, 'bonus', 4);
-				bonus1.body.gravity.y = 200;
 
-		fire = game.input.keyboard.addKey(Phaser.Keyboard.L)
 
 		//-----------------------------------------NINJA
 
@@ -171,10 +227,19 @@
 		ninja2 = game.add.group()
 		ninja2.enableBody = true
 		ninja2.physicsBodyType = Phaser.Physics.ARCADE
+
 		var fullScreenButton = game.input.keyboard.addKey(Phaser.Keyboard.ONE)
 		rest = game.input.keyboard.addKey(Phaser.Keyboard.R)
 		fullScreenButton.onDown.add(toggleFullScreen)
 		game.sound.setDecodedCallback([ballBounce, jogaShur, shoot, punch], update, this);
+		autorText = game.add.text(game.width-7, game.height-9, 'Desenvolvido por João Gris' , {
+			font: "18px Calibri",
+			//style: "bold",
+			fill: "#ffffff",
+			align: "center"
+		});
+		autorText.anchor.setTo(1, 1)
+
 	}
 
 
@@ -186,13 +251,13 @@
 				ballLost()
 			}
 			paddle.x = game.input.x;
-			
-			if (paddle.x < paddle.width/2) {
-				paddle.x = paddle.width/2;
-			} else if (paddle.x > game.width - paddle.width/2) {
-				paddle.x = game.width - paddle.width/2;
+
+			if (paddle.x < paddle.width / 2) {
+				paddle.x = paddle.width / 2;
+			} else if (paddle.x > game.width - paddle.width / 2) {
+				paddle.x = game.width - paddle.width / 2;
 			}
-			
+
 
 			if (ballOnPaddle) {
 				ball.body.x = paddle.x;
@@ -223,24 +288,25 @@
 
 	//---------------------------------------------------------------------------------------------------------------//
 
+
 	function createHUD() {
 		scoreBase = game.add.sprite(23, 23, 'scor');
 		scoreBase.alpha = 0.7
 		scoreBase.scale.setTo(3.5, 2.9);
 		scoreBase1 = game.add.sprite(770, 20, 'vid');
-		scoreBase1.scale.setTo(2.4,2.2);
+		scoreBase1.scale.setTo(2.4, 2.2);
 		scoreBase1.alpha = 0.7
-		faseBase = game.add.sprite(game.world.centerX,30, 'scor')
-		faseBase.scale.setTo(2.4,2.4);
-		faseBase.anchor.setTo(0.5,0.5)
-		
-		faseText = game.add.text(game.world.centerX, 35, 'FASE: '+fase, {
+		faseBase = game.add.sprite(game.world.centerX, 30, 'scor')
+		faseBase.scale.setTo(2.4, 2.4);
+		faseBase.anchor.setTo(0.5, 0.5)
+
+		faseText = game.add.text(game.world.centerX, 35, 'FASE: ' + fase, {
 			font: "28px Calibri",
 			//style: "bold",
 			fill: "#ffffff",
 			align: "center"
 		});
-		faseText.anchor.setTo(0.5,0.5)
+		faseText.anchor.setTo(0.5, 0.5)
 
 		scoreText = game.add.text(32, 30, 'SCORE: 0', {
 			font: "28px Calibri",
@@ -253,8 +319,8 @@
 			fill: "#ffffff",
 			align: "left"
 		});
-		introText = game.add.text(game.world.centerX, 350, 'COCA VIADO\nCLIQUE PARA COMEÇAR', {
-			font: "39px Calibri",
+		introText = game.add.text(game.world.centerX, 350, 'CLIQUE PARA COMEÇAR', {
+			font: "45px Calibri",
 			fill: "#ffffff",
 			align: "center"
 		});
@@ -289,21 +355,21 @@
 		ball = game.add.sprite(game.world.centerX, paddle.y - 16, 'ball', 0);
 		ball.anchor.setTo(0.5, 0.5);
 		ball.checkWorldBounds = true;
-		ball.bala = false	
+		ball.bala = false
 		game.physics.enable(ball, Phaser.Physics.ARCADE);
 
 		ball.body.collideWorldBounds = true;
 		ball.body.bounce.set(1);
 
 		ball.animations.add('spin', [4, 3, 1, 0, 2], 30, true);
- 
+
 		ball.events.onOutOfBounds.add(ballLost, this);
 	}
 
 	function createCoin() {
 		var com = (game.width - maiorL * 38) / 2
 		console.log(com + "")
-		var x = getRandomArbitrary(com, game.width-(game.width -maiorL*38)/2)
+		var x = getRandomArbitrary(com, game.width - (game.width - maiorL * 38) / 2)
 		coins = game.add.sprite(x, 50, 'coin', 0);
 		coins.anchor.setTo(0.5, 0.5);
 		coinTador = 0
@@ -342,7 +408,7 @@
 		bulText.visible = true
 		bulText.text = 'TIROS: 30'
 		createBulArt()
-		
+
 
 	}
 
@@ -387,9 +453,9 @@
 		})
 	}
 
-	function 	ninjaCreate() {
+	function ninjaCreate() {
 		createShurikens()
-		var ninja1 = ninja.create(game.world.centerX, 50, 'ninjab', 0);
+		var ninja1 = ninja.create(getRandomArbitrary(100,game.width - 100), 50, 'ninjab', 0);
 		ninja1.anchor.setTo(0.5, 0.5);
 		ninja1.scale.setTo(0.5)
 		ninja1.body.bounce.y = 0.8;
@@ -423,16 +489,12 @@
 				x: 50,
 				y: 50
 			}, game.width * 4)
-			.to({
-				x: game.world.centerX,
-				y: 50
-			}, game.width * 2)
 			.loop(-1)
 			.start()
 	}
 
 	function ninjaAmareloCreate() {
-		var ninja1 = ninja2.create(getRandomArbitrary((game.width - maiorL*38)/2, game.width - (game.width - maiorL*38)/2), 50, 'ninja', 0);
+		var ninja1 = ninja2.create(getRandomArbitrary((game.width - maiorL * 38) / 2, game.width - (game.width - maiorL * 38) / 2), 50, 'ninja', 0);
 		ninja1.anchor.setTo(0.5, 0.5);
 		ninja1.scale.setTo(0.5)
 		ninja1.branco = false
@@ -450,17 +512,20 @@
 			return
 		}
 		createHit(_ninja.body.x, _ninja.body.y)
-		if (_ball.bala) {	
-			bullets.remove(_ball);}
+		if (_ball.bala) {
+			bullets.remove(_ball);
+		}
 		_ninja.collidable = false
-		
+
 		if (_ninja.branco) {
 
-		_ninja.loadTexture('ninjabrm')
-		_ninja.tween.pause()
-		_ninja.body.velocity.y = 50
-		_ninja.timer.destroy()	
-		}else {_ninja.loadTexture('ninjaMorto')}
+			_ninja.loadTexture('ninjabrm')
+			_ninja.tween.pause()
+			_ninja.body.velocity.y = 50
+			_ninja.timer.destroy()
+		} else {
+			_ninja.loadTexture('ninjaMorto')
+		}
 		//_ninja.kill()
 		var jText = game.add.text(_ninja.body.x, _ninja.body.y, "+" + ninjaValue, {
 			font: "20px Calibri",
@@ -509,7 +574,7 @@
 			vidasRate = 70
 			fase = 1
 
-			
+
 			create()
 		}
 	}
@@ -524,7 +589,7 @@
 						bullet.reset(paddle.x + paddle.width / 2, paddle.y)
 					} else {
 						bullet.reset(paddle.x - paddle.width / 2, paddle.y)
-						
+
 					}
 					var ba = bulArt.getFirstExists(true)
 					ba.destroy()
@@ -542,24 +607,23 @@
 			}
 		}
 	}
-	
-	function createBulArt(){
+	var baseTiros
+	function createBulArt() {
 		bulArt.removeAll()
 		bulArt.enableBody = true
 		bulArt.physicsBodyType = Phaser.Physics.ARCADE
 		bulArt.createMultiple(30, 'shot')
 		bulArt.setAll('anchor.x', 0.5)
 		bulArt.setAll('anchor.y', 0.5)
-		var i	= 10
-		
+		var i = 10
+
 		bulArt.forEach(function(valor2, chave2) {
-			valor2.reset(i, paddle.y+48)
+			valor2.reset(i, paddle.y + 48)
 			valor2.rotation = 270 * Math.PI / 180
 			console.log(i + '')
-			i+= 10
-			}
-			)
-		}
+			i += 10
+		})
+	}
 
 	function de() {
 		bullets.remove(this)
@@ -606,7 +670,7 @@
 
 	//---------------------------------------------------------------------------------------------------------------//
 	function toggleFullScreen() {
-		game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT
+		game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL
 		if (game.scale.isFullScreen) {
 			game.scale.stopFullScreen()
 			var container = document.getElementById("game-container")
@@ -649,7 +713,20 @@
 	//---------------------------------------------------------------------------------------------------------------//
 
 	function releaseBall() {
-
+		if (first) {
+			first = false
+			
+			ninjaB.destroy()
+			ninjaA.destroy()
+			bo1.destroy()
+			bo2.destroy()
+			bo3.destroy()
+			bo5.destroy()
+			textIntrosBase.destroy()
+			textIntrosBase1.destroy()
+			introsBase.destroy()
+			introsBase1.destroy()
+		}
 		if (ballOnPaddle) {
 			ballOnPaddle = false;
 			ball.body.velocity.y = ballVelocity
@@ -691,7 +768,7 @@
 	}
 
 	function coinsPaddle(_coins, _paddle) {
-		var jText = game.add.text(_coins.body.x, _coins.body.y, "+"+coinValue, {
+		var jText = game.add.text(_coins.body.x, _coins.body.y, "+" + coinValue, {
 			font: "20px Calibri",
 			fill: "#ffffff",
 			align: "center"
@@ -708,7 +785,7 @@
 
 		lives--;
 		var vi = vidas.getFirstExists(true)
-		console.log(_shurikens.body.x +' <-x shur y-> '+ _shurikens.body.y)
+		console.log(_shurikens.body.x + ' <-x shur y-> ' + _shurikens.body.y)
 		createHit(_shurikens.body.x, _shurikens.body.y)
 		vidas.remove(vi)
 		vidas.remove(0)
@@ -765,7 +842,7 @@
 	function getRandomArbitrary(min, max) {
 		return Math.random() * (max - min) + min;
 	}
-	
+
 
 
 	function bulletHitBrick(_bullet, _brick) {
@@ -838,17 +915,17 @@
 		score += 1000;
 		scoreText.text = 'SCORE: ' + score;
 		introText.text = 'FASE: ' + ++fase + '\n Velocidade da Bola Aumentada\nValor dos Blocos Aumentado\nDificuldade Aumentada';
-		faseText.text = 'FASE: '+ fase
-		while (ninja.countLiving() > 0) {	
+		faseText.text = 'FASE: ' + fase
+		while (ninja.countLiving() > 0) {
 			var valor = ninja.getFirstExists(true)
 			valor.timer.destroy()
 			valor.destroy()
 		}
-		
+
 		ninja.removeAll()
 		bonus.removeAll()
-		
-		
+
+
 		ballOnPaddle = true;
 		ball.body.velocity.set(0);
 		ball.x = paddle.x + 16;
@@ -869,45 +946,46 @@
 			vidasRate += 10
 		}
 		game.time.events.add(Phaser.Timer.SECOND, function() {
-					groupBricks.callAll('revive');
+			groupBricks.callAll('revive');
 
-				}, this); introText.visible = true
+		}, this);
+		introText.visible = true
 
+	}
+
+	function ballHitPaddle(_ball, _paddle) {
+		ballBounce.play()
+		var diff = 0;
+		if (coinTador++ == 10) {
+			createCoin()
+		}
+		if (_ball.x < _paddle.x) {
+			//  Ball is on the left-hand side of the paddle
+			diff = _paddle.x - _ball.x;
+			_ball.body.velocity.x = (-10 * diff);
+		} else if (_ball.x > _paddle.x) {
+			//  Ball is on the right-hand side of the paddle
+			diff = _ball.x - _paddle.x;
+			_ball.body.velocity.x = (10 * diff);
+		} else {
+			//  Ball is perfectly in the middle
+			//  Add a little random X to stop it bouncing straight up!
+			_ball.body.velocity.x = 2 + Math.random() * 8;
 		}
 
-		function ballHitPaddle(_ball, _paddle) {
-			ballBounce.play()
-			var diff = 0;
-			if (coinTador++ == 10) {
-				createCoin()
-			}
-			if (_ball.x < _paddle.x) {
-				//  Ball is on the left-hand side of the paddle
-				diff = _paddle.x - _ball.x;
-				_ball.body.velocity.x = (-10 * diff);
-			} else if (_ball.x > _paddle.x) {
-				//  Ball is on the right-hand side of the paddle
-				diff = _ball.x - _paddle.x;
-				_ball.body.velocity.x = (10 * diff);
-			} else {
-				//  Ball is perfectly in the middle
-				//  Add a little random X to stop it bouncing straight up!
-				_ball.body.velocity.x = 2 + Math.random() * 8;
-			}
+	}
 
+
+	function hitBrick(sprite, bullet) {
+		if (sprite.alive) {
+			sprite.damage(1)
+			updateHud()
+			createExplosion(bullet.x, bullet.y)
+			bullet.kill()
 		}
+	}
 
 
-		function hitBrick(sprite, bullet) {
-			if (sprite.alive) {
-				sprite.damage(1)
-				updateHud()
-				createExplosion(bullet.x, bullet.y)
-				bullet.kill()
-			}
-		}
-
-
-		function render() {
-			//game.debug.body(ball, 'red', false);
-		}
+	function render() {
+		//game.debug.body(ball, 'red', false);
+	}
