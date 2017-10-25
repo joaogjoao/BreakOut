@@ -30,7 +30,6 @@
 	var hits
 	var coinTador = 0
 	var coins
-
 	var ball
 	var paddle
 	var bullets
@@ -115,16 +114,15 @@
 		punch = game.add.audio('punch')
 		punch.volume = 0.35
 
-
-
+ 	
 		//---------------------------------------MAPA-------
 		var mapas = [
 			//[1, 6, 2, 3, 4, 5, 6, 1, 2, 3, 0, 4, 5, 2, 2, 2, 3],
-			// [1, 2, 3, 4, 5, 6, 1, 2, 3, 0, 0, 4, 5, 2, 2, 2, 3],
-			//[1, 2, 3, 4, 5, 6, 1, 2, 3, 0, 0, 4, 5, 2, 2, 2, 3],
-			//[1, 3, 2, 2, 3, 4, 5, 6, 1, 2, 3, 0],
-			[0, 1, 2, 3, 4, 5]
-		//	[0, 1, 2, 3, 4, 5],
+		  // [1, 2, 3, 4, 5, 6, 1, 2, 3, 0, 0, 4, 5, 2, 2, 2, 3],
+			//[0, 0, 0, 1, 2, 3, 4, 5, 6, 1, 2, 3, 0, 0, 4, 5, 2, 2, 2, 3],
+			//[6, 6, 0, 0, 0, 1, 3, 2, 2, 3, 4, 5, 6, 1, 2, 3, 0],
+			//[6, 6, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+			[ 0, 1, 2, 3, 4, 5]
 			//[0, 1, 2, 3, 4, 5],
 			//[0, 1, 2, 3, 4, 5],
 			//[0, 1, 2, 3, 4, 5]
@@ -184,16 +182,17 @@
 
 	function update() {
 		if (!gameOvers) {
-			paddle.x = game.input.x;
 			if (ball.y > game.height - 16) {
 				ballLost()
 			}
-
-			if (paddle.x < 24) {
-				paddle.x = 24;
-			} else if (paddle.x > game.width - 24) {
-				paddle.x = game.width - 24;
+			paddle.x = game.input.x;
+			
+			if (paddle.x < paddle.width/2) {
+				paddle.x = paddle.width/2;
+			} else if (paddle.x > game.width - paddle.width/2) {
+				paddle.x = game.width - paddle.width/2;
 			}
+			
 
 			if (ballOnPaddle) {
 				ball.body.x = paddle.x;
@@ -254,20 +253,20 @@
 			fill: "#ffffff",
 			align: "left"
 		});
-		introText = game.add.text(game.world.centerX, 350, 'CLIQUE PARA COMEÇAR', {
-			font: "30px Calibri",
+		introText = game.add.text(game.world.centerX, 350, 'COCA VIADO\nCLIQUE PARA COMEÇAR', {
+			font: "39px Calibri",
 			fill: "#ffffff",
 			align: "center"
 		});
 		introText.anchor.setTo(0.5, 0.5);
 
-		bulText = game.add.text(game.world.centerX, paddle.body.y + 50, 'TIROS: 30', {
+		bulText = game.add.text(10, paddle.body.y + 10, 'TIROS: 30', {
 			font: "28px Calibri",
 			fill: "#ffffff",
 			align: "left"
 		});
 
-		bulText.anchor.setTo(0.5, 0.5)
+		bulText.anchor.setTo(0, 0)
 		bulText.visible = false
 	}
 
@@ -554,7 +553,7 @@
 		var i	= 10
 		
 		bulArt.forEach(function(valor2, chave2) {
-			valor2.reset((i), paddle.y+30)
+			valor2.reset(i, paddle.y+48)
 			valor2.rotation = 270 * Math.PI / 180
 			console.log(i + '')
 			i+= 10
@@ -607,11 +606,15 @@
 
 	//---------------------------------------------------------------------------------------------------------------//
 	function toggleFullScreen() {
-		game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL
+		game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT
 		if (game.scale.isFullScreen) {
 			game.scale.stopFullScreen()
+			var container = document.getElementById("game-container")
+			container.style.cursor = "default"
 		} else {
 			game.scale.startFullScreen(false)
+			var container = document.getElementById("game-container")
+			container.style.cursor = "none"
 		}
 	}
 
@@ -651,7 +654,6 @@
 			ballOnPaddle = false;
 			ball.body.velocity.y = ballVelocity
 			ball.body.velocity.x = -75;
-			ball.animations.play('spin');
 			introText.visible = false;
 		}
 
@@ -837,7 +839,16 @@
 		scoreText.text = 'SCORE: ' + score;
 		introText.text = 'FASE: ' + ++fase + '\n Velocidade da Bola Aumentada\nValor dos Blocos Aumentado\nDificuldade Aumentada';
 		faseText.text = 'FASE: '+ fase
-
+		while (ninja.countLiving() > 0) {	
+			var valor = ninja.getFirstExists(true)
+			valor.timer.destroy()
+			valor.destroy()
+		}
+		
+		ninja.removeAll()
+		bonus.removeAll()
+		
+		
 		ballOnPaddle = true;
 		ball.body.velocity.set(0);
 		ball.x = paddle.x + 16;
