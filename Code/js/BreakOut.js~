@@ -22,7 +22,7 @@
 
 	var goodRate = 60
 	var badRate = 80
-	var vidasRate = 70 -70
+	var vidasRate = 70
 	var LEVEL = 1
 
 
@@ -239,6 +239,7 @@
 			align: "center"
 		});
 		autorText.anchor.setTo(1, 1)
+		
 
 	}
 
@@ -817,7 +818,7 @@
 		_health.kill()
 		if (lives < 3) {
 			lives++;
-			var v = game.add.sprite(_paddle.body.x+_paddle.width /2, _paddle.body.y-30, 'vida')
+			var v = game.add.sprite(_paddle.body.x+_paddle.width /2, _paddle.body.y-10, 'vida')
 			v.scale.setTo(1.5)
 			v.anchor.setTo(0.5)			
 			game.time.events.add(Phaser.Timer.SECOND, function() {

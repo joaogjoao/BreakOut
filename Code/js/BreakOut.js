@@ -22,7 +22,7 @@
 
 	var goodRate = 60
 	var badRate = 80
-	var vidasRate = 70 -70
+	var vidasRate = 70
 	var LEVEL = 1
 
 
@@ -239,6 +239,7 @@
 			align: "center"
 		});
 		autorText.anchor.setTo(1, 1)
+		
 
 	}
 
