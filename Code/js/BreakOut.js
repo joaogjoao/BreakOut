@@ -22,8 +22,8 @@
 
 	var goodRate = 60
 	var badRate = 80
-	var vidasRate = 70
-	var fase = 1
+	var vidasRate = 70 -70
+	var LEVEL = 1
 
 
 
@@ -45,14 +45,14 @@
 	var lives = 3;
 	var score = 0;
 	var maiorL
-	var faseBase
+	var LEVELBase
 	var scoreBase
 	var scoreBase1
 	var nextFire = 0;
 	var fireRate = 200;
 	var rest
 	var fire
-	var faseText;
+	var LEVELText;
 	var scoreText;
 	var livesText;
 	var introText;
@@ -232,7 +232,7 @@
 		rest = game.input.keyboard.addKey(Phaser.Keyboard.R)
 		fullScreenButton.onDown.add(toggleFullScreen)
 		game.sound.setDecodedCallback([ballBounce, jogaShur, shoot, punch], update, this);
-		autorText = game.add.text(game.width-7, game.height-9, 'Desenvolvido por João Gris' , {
+		autorText = game.add.text(game.width - 7, game.height - 9, 'Desenvolvido por João Gris', {
 			font: "18px Calibri",
 			//style: "bold",
 			fill: "#ffffff",
@@ -261,6 +261,14 @@
 
 			if (ballOnPaddle) {
 				ball.body.x = paddle.x;
+				while (ninja.countLiving() > 0) {
+					var valor = ninja.getFirstExists(true)
+					valor.timer.destroy()
+					valor.destroy()
+				}
+
+				ninja.removeAll()
+				bonus.removeAll()
 			} else {
 				game.physics.arcade.collide(bonus, paddle, getBonus, null, this);
 				game.physics.arcade.collide(ball, paddle, ballHitPaddle, null, this);
@@ -275,13 +283,25 @@
 				game.physics.arcade.collide(ball, groupBricks, ballHitBrick, null, this);
 				game.physics.arcade.collide(bullets, groupBricks, bulletHitBrick, null, this);
 				game.physics.arcade.collide(shurikens, paddle, shurikenPaddle, null, this);
+				fireBullet()
 			}
-			fireBullet()
 			if (bn == 0) {
 				paddle.loadTexture('paddle')
 				bulText.visible = false
 			}
 		} else {
+			while (ninja.countLiving() > 0) {
+				var valor = ninja.getFirstExists(true)
+				valor.timer.destroy()
+				valor.destroy()
+			}
+
+			ninja.removeAll()
+			bonus.removeAll()
+			shurikens.removeAll()
+			if(bn > 0){bullets.removeAll()}
+			bulArt.removeAll()
+			vidas.removeAll()
 			resta()
 		}
 	}
@@ -296,17 +316,17 @@
 		scoreBase1 = game.add.sprite(770, 20, 'vid');
 		scoreBase1.scale.setTo(2.4, 2.2);
 		scoreBase1.alpha = 0.7
-		faseBase = game.add.sprite(game.world.centerX, 30, 'scor')
-		faseBase.scale.setTo(2.4, 2.4);
-		faseBase.anchor.setTo(0.5, 0.5)
+		LEVELBase = game.add.sprite(game.world.centerX, 30, 'scor')
+		LEVELBase.scale.setTo(2.4, 2.4);
+		LEVELBase.anchor.setTo(0.5, 0.5)
 
-		faseText = game.add.text(game.world.centerX, 35, 'FASE: ' + fase, {
+		LEVELText = game.add.text(game.world.centerX, 35, 'LEVEL: ' + LEVEL, {
 			font: "28px Calibri",
 			//style: "bold",
 			fill: "#ffffff",
 			align: "center"
 		});
-		faseText.anchor.setTo(0.5, 0.5)
+		LEVELText.anchor.setTo(0.5, 0.5)
 
 		scoreText = game.add.text(32, 30, 'SCORE: 0', {
 			font: "28px Calibri",
@@ -455,7 +475,7 @@
 
 	function ninjaCreate() {
 		createShurikens()
-		var ninja1 = ninja.create(getRandomArbitrary(100,game.width - 100), 50, 'ninjab', 0);
+		var ninja1 = ninja.create(getRandomArbitrary(100, game.width - 100), 50, 'ninjab', 0);
 		ninja1.anchor.setTo(0.5, 0.5);
 		ninja1.scale.setTo(0.5)
 		ninja1.body.bounce.y = 0.8;
@@ -473,18 +493,14 @@
 		fireShuriken(ninja1.x, ninja1.y)
 		ninja1.timer = game.time.create(false);
 
-		//  Set a TimerEvent to occur after 2 seconds
 		ninja1.timer.loop(2000, () => fireShuriken(ninja1.x, ninja1.y), this);
-
-		//  Start the timer running - this is important!
-		//  It won't start automatically, allowing you to hook it to button events and the like.
 		ninja1.timer.start();
 
 		ninja1.tween = game.add.tween(ninja1)
 			.to({
 				x: game.width - 50,
 				y: 50
-			}, game.width * 2)
+			}, game.width * 4)
 			.to({
 				x: 50,
 				y: 50
@@ -572,7 +588,7 @@
 			goodRate = 60
 			badRate = 80
 			vidasRate = 70
-			fase = 1
+			LEVEL = 1
 
 
 			create()
@@ -608,6 +624,7 @@
 		}
 	}
 	var baseTiros
+
 	function createBulArt() {
 		bulArt.removeAll()
 		bulArt.enableBody = true
@@ -686,17 +703,54 @@
 
 	//---------------------------------------------------------------------------------------------------------------//
 	function getBonus(_paddle, _bonus) {
+		var bobase 
+		bobase = game.add.sprite(_paddle.body.x, _paddle.body.y-50, 'scor')
+		
 
 		if (_bonus.frame == 7) {
+			var jText = game.add.text(_paddle.body.x, _paddle.body.y-50, "BLINK", {
+			font: "20px Calibri",
+			fill: "#ffffff",
+			align: "center"
+		});
+			bobase.anchor.setTo(0.2, 0.6)
+			bobase.scale.setTo(2, 2);
+			bobase.tint = 0xff0000			
 			blink()
 		} else if (_bonus.frame == 4) {
+			var jText = game.add.text(_paddle.body.x+13, _paddle.body.y-50, "30 TIROS DISPONÍVEIS", {
+			font: "20px Calibri",
+			fill: "#ffffff",
+			align: "center"
+		});
+
+			bobase.tint = 0x00ff00			
+			bobase.anchor.setTo(0, 0.6)			
+			bobase.scale.setTo(4.3, 2);
 			bolasDefogo(_paddle)
 		} else if (_bonus.frame == 5) {
+			
+			var jText = game.add.text(_paddle.body.x+13, _paddle.body.y-50, "EXPANSÃO TEMPORÁRIA", {
+			font: "20px Calibri",
+			fill: "#ffffff",
+			align: "center"
+		})
+			
+			bobase.tint = 0x00ff00
+			bobase.anchor.setTo(0, 0.6)
+			bobase.scale.setTo(4.3, 2.3);
+			
 			_paddle.scale.setTo(2, 1.5)
 			game.time.events.add(Phaser.Timer.SECOND * 10, function() {
 				_paddle.scale.setTo(1.5)
 			})
 		}
+		jText.anchor.setTo(0, 0.5)		
+		game.time.events.add(Phaser.Timer.SECOND, function() {
+			jText.destroy()
+			bobase.destroy()
+		}, this);			
+		
 		_bonus.kill();
 	}
 
@@ -715,7 +769,7 @@
 	function releaseBall() {
 		if (first) {
 			first = false
-			
+
 			ninjaB.destroy()
 			ninjaA.destroy()
 			bo1.destroy()
@@ -763,6 +817,12 @@
 		_health.kill()
 		if (lives < 3) {
 			lives++;
+			var v = game.add.sprite(_paddle.body.x+_paddle.width /2, _paddle.body.y-10, 'vida')
+			v.scale.setTo(1.5)
+			v.anchor.setTo(0.5)			
+			game.time.events.add(Phaser.Timer.SECOND, function() {
+				v.destroy()
+			}, this);
 		}
 		plotLives()
 	}
@@ -914,16 +974,9 @@
 	function recreate() {
 		score += 1000;
 		scoreText.text = 'SCORE: ' + score;
-		introText.text = 'FASE: ' + ++fase + '\n Velocidade da Bola Aumentada\nValor dos Blocos Aumentado\nDificuldade Aumentada';
-		faseText.text = 'FASE: ' + fase
-		while (ninja.countLiving() > 0) {
-			var valor = ninja.getFirstExists(true)
-			valor.timer.destroy()
-			valor.destroy()
-		}
+		introText.text = 'LEVEL: ' + ++LEVEL + '\n Velocidade da Bola Aumentada\nValor dos Blocos Aumentado\nDificuldade Aumentada';
+		LEVELText.text = 'LEVEL: ' + LEVEL
 
-		ninja.removeAll()
-		bonus.removeAll()
 
 
 		ballOnPaddle = true;
